@@ -152,12 +152,8 @@ window.addEventListener('load', comprobarUbicacion());
 </script>
 
 
-<%
-=begin%>
- <% if request.path.include?('/quizzes/') %>
+<% if request.path.include?('/quizzes/') %>
 
-    <%= render '/encuestas/prueba_encuestas_mit' %>
+    <%= render '/encuestas/prueba_encuestas_xpro' %>
 
-<%end%> 
-<%
-=end%>
+<%end%>
