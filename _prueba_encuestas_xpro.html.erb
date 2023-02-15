@@ -56,8 +56,8 @@ const comprobarUbicacion = () => {
         return response.json();
     }).then((quiz) => {
         const quizTitle = quiz.title
-        const resultadoInicial = /initial.survey.quiz/i.test(quizTitle)
-        const resultadoFinal = /final.survey.quiz/i.test(quizTitle)
+        const resultadoInicial = /initial.survey.quiz.test/i.test(quizTitle)
+        const resultadoFinal = /final.survey.quiz.test/i.test(quizTitle)
         if (resultadoInicial) {
             console.log("inicial")
             mostrarEncuestaInicial()
