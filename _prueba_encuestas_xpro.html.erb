@@ -123,7 +123,7 @@ fetch(`https://${homePath}/api/v1/courses/${idCourse}`)
                 return response.json();
             }).then((profile) => {
                 // buscar usuario en Mongo
-                const resultado = collection.findOne({sis_id: profile.sis_user_id, course_code: course.course_code, $or: [{final_active: false}, {final_answered: true}]});
+                const resultado = collection.findOne({sis_id: profile.sis_user_id, course_code: course.course_code, $or: [{exit_active: false}, {exit_answered: true}]});
                 console.log("done");
                 resultado.then((response) => {
                     if (response !== null) {
