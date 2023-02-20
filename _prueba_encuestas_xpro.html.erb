@@ -27,13 +27,7 @@ const homePath = pathArray[2];
 const idQuiz = pathArray[6];
 
 
-// iniciar Realm de MongoDB
-const app = new Realm.App({ id: "data-esbic" });
-const credentials = Realm.Credentials.anonymous();
-const user = app.logIn(credentials);
-// console.assert(user.id === app.cirrentUser.id);
-const mongo = app.currentUser.mongoClient("Cluster0");
-const collection = mongo.db("rails_mongo_admin_encuestas").collection("users");
+
 
 // IDs para encuestas segun lenguajes e instancia
 let idiomasInitial = {
@@ -48,39 +42,53 @@ let idiomasExit = {
     POR: ''
 }
 
+const comprobarRol = () => {
+    // comprobar el rol del estudiante
 
-const comprobarUbicacion = () => {
-    // comprobar si está en el quiz que corresponde a initial o exit survey
-    fetch(`https://${homePath}/api/v1/courses/${idCourse}/quizzes/${idQuiz}`)
+    const options = {  'credentials' : 'same-origin',  'headers' : {    'accept' : 'application/json'  }};
+    fetch(`https://${homePath}/api/v1/users/self/profile`, options)
     .then((response) => {
-        return response.json();
-    }).then((quiz) => {
-        const quizTitle = quiz.title
-        const resultadoInicial = /initial.survey.quiz.test/i.test(quizTitle)
-        const resultadoFinal = /final.survey.quiz.test/i.test(quizTitle)
-        if (resultadoInicial) {
-            console.log("inicial")
-            mostrarEncuestaInicial()
-        } else if (resultadoFinal) {
-            console.log("final")
-            mostrarEncuestaFinal()
-        }
-
+        return response.json()
+    }) 
+    .then((profile) => {
+        fetch(`https://${homePath}/api/v1/courses/${idCourse}/enrollments?sis_user_id=${profile.sis_user_id}`, options)
+        .then((response) => {
+            return response.json();
+        })
+        .then((enrollment) => {
+            if (enrollment[0].type == "StudentEnrollment") {
+                mostrarEncuestaInicial()
+                console.log("estudiante")
+            } else {
+                console.log("no es estudiante")
+                return
+            }
+        })        
     })
+
 }
 
 
 
-const mostrarEncuestaInicial = () => {
+const mostrarEncuestaInicial = async () => {
+
+    // iniciar Realm de MongoDB
+    const app = new Realm.App({ id: "data-esbic" });
+    const credentials = Realm.Credentials.anonymous();
+    const user = await app.logIn(credentials);
+    // console.assert(user.id === app.cirrentUser.id);
+    const mongo = app.currentUser.mongoClient("Cluster0");
+    const collection = mongo.db("rails_mongo_admin_encuestas").collection("users"); 
 
     // obtener datos del curso
-    fetch(`https://${homePath}/api/v1/courses/${idCourse}`)
+    const options = {  'credentials' : 'same-origin',  'headers' : {    'accept' : 'application/json'  }};
+    fetch(`https://${homePath}/api/v1/courses/${idCourse}`, options)
         .then((response) => {
             return response.json();
         })
         .then((course) => {
             // obtener datos del usuario
-            fetch('/api/v1/users/self/profile')
+            fetch('/api/v1/users/self/profile', options)
                 .then((response) => {
                     return response.json();
                 }).then((profile) => {
@@ -96,8 +104,8 @@ const mostrarEncuestaInicial = () => {
                             let idioma = course.course_code.split('-')[1]
                             // si no está en Mongo: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
                             const { open, close, toggle, refresh } = window.tf.createPopup(idiomasInitial[idioma], {open: 'load', autoClose:'2000', 
-                            hidden: {user_name: profile.name, user_email: profile.primary_email, user_sis_id: profile.sis_user_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], survey_instance: 'initial'},
-                            onSubmit: () => {collection.updateOne({name: profile.name, email: profile.primary_email, sis_id: profile.sis_user_id, university: "XPRO", course_code: course.course_code}, {$set: {initial_active: false, initial_answered: true, midterm_active: true, exit_active: true}}, {upsert: true})
+                            hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.sis_user_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], survey_instance: 'initial'},
+                            onSubmit: () => {collection.updateOne({name: profile.name, email: profile.login_id, sis_id: profile.sis_user_id, university: "XPRO", course_code: course.course_code}, {$set: {initial_active: false, initial_answered: true, midterm_active: true, exit_active: true}}, {upsert: true})
                             console.log("inserto en BD")}
                             // agregar docuemnto a BD Mongo
                             })
@@ -109,50 +117,15 @@ const mostrarEncuestaInicial = () => {
 };
 
 
-const mostrarEncuestaFinal = () => {
 
-// obtener datos del curso
-fetch(`https://${homePath}/api/v1/courses/${idCourse}`)
-    .then((response) => {
-        return response.json();
-    })
-    .then((course) => {
-        // obtener datos del usuario
-        fetch('/api/v1/users/self/profile')
-            .then((response) => {
-                return response.json();
-            }).then((profile) => {
-                // buscar usuario en Mongo
-                const resultado = collection.findOne({sis_id: profile.sis_user_id, course_code: course.course_code, $or: [{exit_active: false}, {exit_answered: true}]});
-                console.log("done");
-                resultado.then((response) => {
-                    if (response !== null) {
-                        // si ya esta en BD
-                        console.log(response)
-
-                    } else {
-                        let idioma = course.course_code.split('-')[1]
-                        // si no está en Mongo: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
-                        const { open, close, toggle, refresh } = window.tf.createPopup(idiomasExit[idioma], {open: 'load', autoClose:'2000', 
-                        hidden: {user_name: profile.name, user_email: profile.primary_email, user_sis_id: profile.sis_user_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], survey_instance: 'final'},
-                        onSubmit: () => {collection.updateOne({name: profile.name, email: profile.primary_email, sis_id: profile.sis_user_id, university: "XPRO", course_code: course.course_code}, {$set: {exit_active: false, exit_answered: true}}, {upsert: true})
-                        console.log("inserto en BD")}
-                        // agregar docuemnto a BD Mongo
-                        })
-                    }
-                })
-
-            });
-    });
-};
-
-
-window.addEventListener('load', comprobarUbicacion());
+window.addEventListener('load', comprobarRol());
 
 </script>
 
 
-<% if request.path.include?('/quizzes/') %>
+
+
+<% if request.path.include?('/pages/initial-survey-managing-complex-projects-and-organization') %>
 
     <%= render '/encuestas/prueba_encuestas_xpro' %>
 
