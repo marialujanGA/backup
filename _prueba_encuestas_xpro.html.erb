@@ -51,14 +51,15 @@ const comprobarRol = () => {
         return response.json()
     }) 
     .then((profile) => {
-
-        fetch(`https://${homePath}/api/v1/courses/${idCourse}/enrollments?type[]=StudentEnrollment`, options)
+        console.log(profile.id)
+        fetch(`https://${homePath}/api/v1/users/self/enrollments`, options)
         .then((response) => {
             return response.json();
         })
         .then((enrollment) => {
-
-            if (enrollment.some(e => e.user_id === profile.id)) {
+            console.log(enrollment)
+            if (enrollment.some(e => e.type == "StudentEnrollment" && e.course_id == idCourse)) {
+                // si es estudiante muestra la encuesta, sino no
                 mostrarEncuestaInicial()
                 console.log("estudiante")
             } else {
