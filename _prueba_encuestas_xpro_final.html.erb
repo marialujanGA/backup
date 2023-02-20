@@ -59,7 +59,7 @@ const comprobarRol = () => {
         .then((enrollment) => {
 
             if (enrollment.some(e => e.user_id === profile.id)) {
-                mostrarEncuestaInicial()
+                mostrarEncuestaFinal()
                 console.log("estudiante")
             } else {
                 console.log("no es estudiante")
@@ -70,9 +70,7 @@ const comprobarRol = () => {
 
 }
 
-
-
-const mostrarEncuestaInicial = async () => {
+const mostrarEncuestaFinal = async () => {
 
     // iniciar Realm de MongoDB
     const app = new Realm.App({ id: "data-esbic" });
@@ -85,6 +83,7 @@ const mostrarEncuestaInicial = async () => {
     // obtener datos del curso
     const options = {  'credentials' : 'same-origin',  'headers' : {    'accept' : 'application/json'  }};
     fetch(`https://${homePath}/api/v1/courses/${idCourse}`, options)
+    
         .then((response) => {
             return response.json();
         })
@@ -95,7 +94,7 @@ const mostrarEncuestaInicial = async () => {
                     return response.json();
                 }).then((profile) => {
                     // buscar usuario en Mongo
-                    const resultado = collection.findOne({sis_id: profile.sis_user_id, course_code: course.course_code, $or: [{initial_active: false}, {initial_answered: true}]});
+                    const resultado = collection.findOne({sis_id: profile.sis_user_id, course_code: course.course_code, $or: [{exit_active: false}, {exit_answered: true}]});
                     console.log("done");
                     resultado.then((response) => {
                         if (response !== null) {
@@ -105,15 +104,15 @@ const mostrarEncuestaInicial = async () => {
                         } else {
                             let idioma = course.course_code.split('-')[1]
                             // si no está en Mongo: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
-                            const { open, close, toggle, refresh } = window.tf.createPopup(idiomasInitial[idioma], {open: 'load', autoClose:'2000', 
-                            hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.sis_user_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], survey_instance: 'initial'},
-                            onSubmit: () => {collection.updateOne({name: profile.name, email: profile.login_id, sis_id: profile.sis_user_id, university: "XPRO", course_code: course.course_code}, {$set: {initial_active: false, initial_answered: true, midterm_active: true, exit_active: true}}, {upsert: true})
+                            const { open, close, toggle, refresh } = window.tf.createPopup(idiomasExit[idioma], {open: 'load', autoClose:'2000', 
+                            hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.sis_user_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], survey_instance: 'final'},
+                            onSubmit: () => {collection.updateOne({name: profile.name, email: profile.login_id, sis_id: profile.sis_user_id, university: "XPRO", course_code: course.course_code}, {$set: {exit_active: false, exit_answered: true}}, {upsert: true})
                             console.log("inserto en BD")}
                             // agregar docuemnto a BD Mongo
                             })
                         }
                     })
-  
+
                 });
         });
 };
@@ -123,12 +122,3 @@ const mostrarEncuestaInicial = async () => {
 window.addEventListener('load', comprobarRol());
 
 </script>
-
-
-
-
-<% if request.path.include?('/pages/initial-survey-managing-complex-projects-and-organization') %>
-
-    <%= render '/encuestas/prueba_encuestas_xpro' %>
-
-<%end%>
