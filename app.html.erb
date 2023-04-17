@@ -1,0 +1,17 @@
+
+<!-------- ENCUESTAS -------->
+
+<% if request.path.include?('pages/initial-survey-curso-de-pruebas') %>
+
+    <%= render '/encuestas/encuesta_inicial_xpro' %>
+
+<%end%>
+
+<% if request.path.include?('pages/final-survey-') || request.path.include?('pages/encuesta-final-') || request.path.include?('pages/questionario-final-') %>
+
+    <%= render '/encuestas/encuesta_final_xpro' %>
+
+<% end %>
+
+
+<!-------- FIN ENCUESTAS -------->
