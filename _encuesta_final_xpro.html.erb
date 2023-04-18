@@ -56,7 +56,7 @@ const comprobarRol = () => {
     })
 }
 
-const BASE_URL = '*';
+const BASE_URL = 'https://encuestas.comunidadalumnos.org/students';
 
 
 const mostrarEncuestaFinal = async () => {
@@ -73,16 +73,10 @@ const mostrarEncuestaFinal = async () => {
                     return response.json();
                 }).then((profile) => {
                     // corroborar si esta en la BD
-                    fetch(BASE_URL/check_final, {
-                        method: 'GET',
-                        headers: {
-                            'content-type' : 'application/json'
-                        },
-                        body: {
-                            email: profile.email,
-                            course: course.course_code
-                        }}).then((response) => {
-                            if (response.result == 'false') {
+                    fetch(`${BASE_URL}/check_final?email=${profile.login_id}&course=${course.course_code}`).then((response) => {
+                        return response.json();
+                        }).then((respuesta) => {
+                            if (respuesta.result == false) {
                                 // si no hay que mostrar la encuesta
                                 console.log('No')
 
@@ -90,7 +84,8 @@ const mostrarEncuestaFinal = async () => {
                                 let idioma = course.course_code.split('-')[1]
                                 // si no está en la BD: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
                                 const { open, close, toggle, refresh } = window.tf.createPopup(idiomasFinal[idioma], {open: 'load', autoClose:'2000', 
-                                hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.integration_id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], period: 'final', university: 'XPRO'}}),
+                                hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.integration_id, user_canvas_id: profile.id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], period: 'final', university: 'XPRO'}})
+                                
                                 console.log("inserto en BD")}
                                 // agregar documento a BD a traves de webhook
                                 })
