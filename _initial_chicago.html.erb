@@ -76,7 +76,7 @@ const mostrarEncuestaFinal = async () => {
                             } else {
                                 // si no está en la BD: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
                                 const { open, close, toggle, refresh } = window.tf.createPopup('fRGEBwr5', {open: 'load', autoClose:'2000', 
-                                hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.integration_id, user_canvas_id: profile.id, course_code: course.course_code, course_name: course.name, course: course.course_code.split('-')[0], course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[2].split(' ')[1], course_cycle: course.course_code.split('-')[2].split(' ')[0], period: 'initial', university: 'TEST-CHICAGO'}})
+                                hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.integration_id, user_canvas_id: profile.id, course_code: course.course_code, course_name: course.name, course: course.course_code, course_language: course.course_code, course_period: course.course_code, course_cycle: course.course_code, period: 'initial', university: 'TEST-CHICAGO'}})
                                 
                                 console.log("inserto en BD")}
                                 // agregar documento a BD a traves de webhook
@@ -95,12 +95,3 @@ window.addEventListener('load', comprobarRol());
 
 
 
-
-
-
-
-<% if request.path.include?('pages/initial-survey-test-typeform') %>
-
-    <%= render '/encuestas/initial_chicago' %>
-
-<%end%>
