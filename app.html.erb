@@ -1,13 +1,13 @@
 
 <!-------- ENCUESTAS -------->
 
-<% if request.path.include?('pages/initial-survey') %>
+<% if request.path.include?('pages/initial-survey') || request.path.include?('pages/encuesta-inicial') || request.path.include?('pages/questionario-inicial') %>
 
     <%= render '/encuestas/encuesta_inicial_xpro' %>
 
 <%end%>
 
-<% if request.path.include?('pages/final-survey-') || request.path.include?('pages/encuesta-final-') || request.path.include?('pages/questionario-final-') %> 
+<% if request.path.include?('pages/final-survey') || request.path.include?('pages/encuesta-final') || request.path.include?('pages/questionario-final') %> 
 
     <%= render '/encuestas/encuesta_final_xpro' %> 
 
