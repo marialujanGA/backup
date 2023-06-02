@@ -1,0 +1,17 @@
+
+<!-------- ENCUESTAS -------->
+
+<% if request.path.include?('pages/encuesta-final-2023') %>
+
+    <%= render '/encuestas/itam_final' %>
+
+<%end%>
+
+<% if request.path.include?('pages/encuesta-midterm-2023') %>
+
+    <%= render '/encuestas/itam_midterm' %>
+
+<%end%>
+
+
+<!-------- FIN ENCUESTAS -------->
