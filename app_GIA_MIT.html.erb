@@ -1,0 +1,17 @@
+
+<!-------- ENCUESTAS GAI -------->
+
+<% if request.path.include?('courses/671/pages/live-session-1-survey') %>
+
+    <%= render '/encuestas/encuesta_live_session_1_survey' %>
+
+<%end%>
+
+<% if request.path.include?('courses/671/pages/live-session-2-survey') %> 
+
+    <%= render '/encuestas/encuesta_live_session_2_survey' %> 
+
+<% end %> 
+
+
+<!-------- FIN ENCUESTAS -------->
