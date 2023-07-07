@@ -1,0 +1,93 @@
+<%# todo funcionando ok %>
+
+<%# sudo /opt/bitnami/ctlscript.sh restart %>
+
+<style>
+    /* eliminar boton de cierre del pop up */
+    .tf-v1-close {
+        visibility: hidden;
+    }   
+</style>
+
+<%# codigo de typeform  %>
+<button id="button" hidden>open form</button>
+<script src="//embed.typeform.com/next/embed.js"></script>
+<link rel="stylesheet" href="//embed.typeform.com/next/css/popup.css" />
+
+
+<script>
+
+// obtener datos de url
+const currentURL = window.location.href
+const pathArray = currentURL.split('/');
+const idCourse = pathArray[4];
+const homePath = pathArray[2];
+const idQuiz = pathArray[6];
+
+const options = {  'headers' : { 'accept' : 'application/json'  }};
+
+const comprobarRol = () => {
+    // comprobar el rol del estudiante
+    fetch(`https://${homePath}/api/v1/users/self/profile`, options)
+    .then((response) => {
+        return response.json()
+    }) 
+    .then((profile) => {
+        fetch(`https://${homePath}/api/v1/users/self/enrollments`, options)
+        .then((response) => {
+            return response.json();
+        })
+        .then((enrollment) => {
+            if (enrollment.some(e => e.type == "StudentEnrollment" && e.course_id == idCourse)) {
+                mostrarEncuestaFinal(profile.id)
+                console.log("estudiante")
+            } else {
+                console.log("no es estudiante")
+                return
+            }
+        })        
+    })
+}
+
+const BASE_URL = 'https://encuestas.comunidadalumnos.org/students';
+
+
+const mostrarEncuestaFinal = async () => {
+
+    // obtener datos del curso
+    fetch(`https://${homePath}/api/v1/courses/${idCourse}`, options)
+        .then((response) => {
+            return response.json();
+        })
+        .then((course) => {
+            // obtener datos del usuario
+            fetch('/api/v1/users/self/profile', options)
+                .then((response) => {
+                    return response.json();
+                }).then((profile) => {
+                    // corroborar si esta en la BD
+                    fetch(`${BASE_URL}/check_midterm?email=${profile.login_id}&course=GAI-ENG-001-JUN23-WB3`).then((response) => {
+                        return response.json();
+                        }).then((respuesta) => {
+                            if (respuesta.result == false) {
+                                // si no hay que mostrar la encuesta
+                                console.log('No')
+
+                            } else {
+                                // si no está en la BD: crear ventana pop up con encuesta. codigo en https://github.com/Typeform/embed/tree/main/packages/embed
+                                const { open, close, toggle, refresh } = window.tf.createPopup('QWVd7nl8', {open: 'load', autoClose:'2000', 
+                                hidden: {user_name: profile.name, user_email: profile.login_id, user_sis_id: profile.integration_id, user_canvas_id: profile.id, course_code: 'GAI-ENG-001-JUN23-WB3', course_name: course.name, course: course.course_code, course_language: course.course_code.split('-')[1], course_period: course.course_code.split('-')[3], course_cycle: course.course_code.split('-')[2], period: 'midterm', university: 'MITPE'}})
+                                
+                                console.log("inserto en BD")}
+                                // agregar documento a BD a traves de webhook
+                                })
+                        })
+        })
+  
+}
+
+
+
+window.addEventListener('load', comprobarRol());
+
+</script>
